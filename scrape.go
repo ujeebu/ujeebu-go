@@ -1,30 +1,75 @@
 package ujeebu
 
 import (
+	"context"
+	"encoding/json"
 	"fmt"
+	"net/http"
 
 	"github.com/go-resty/resty/v2"
 )
 
+// RawScrapeResponse represents the raw HTTP response from the scrape endpoint
+type RawScrapeResponse struct {
+	Body       []byte      // Raw response body
+	StatusCode int         // HTTP status code
+	Headers    http.Header // Response headers
+}
+
+// ContentType returns the Content-Type header value
+func (r *RawScrapeResponse) ContentType() string {
+	return r.Headers.Get("Content-Type")
+}
+
+// String returns the body as a string
+func (r *RawScrapeResponse) String() string {
+	return string(r.Body)
+}
+
 // ScrapeResponse represents the structured JSON response when `json=true`
 type ScrapeResponse struct {
-	Success    bool   `json:"success"`
-	HTMLSource string `json:"html_source,omitempty"`
-	HTML       string `json:"html,omitempty"`
-	PDF        string `json:"pdf,omitempty"`
-	Screenshot string `json:"screenshot,omitempty"`
+	Success         bool        `json:"success"`
+	HTMLSource      string      `json:"html_source,omitempty"`
+	HTML            string      `json:"html,omitempty"`
+	PDF             string      `json:"pdf,omitempty"`
+	Screenshot      string      `json:"screenshot,omitempty"`
+	Result          any         `json:"result,omitempty"` // For extract_rules results
+	StatusCode      int         `json:"status_code,omitempty"`
+	ResponseHeaders http.Header `json:"response_headers,omitempty"`
 }
 
-// ScrapeError represents an error response from the API
-type ScrapeError struct {
-	URL       string   `json:"url"`
-	Message   string   `json:"message"`
-	ErrorCode int      `json:"error_code"`
-	Errors    []string `json:"errors"`
+// Scrape calls the Ujeebu Scrape API and returns structured JSON response
+func (c *Client) Scrape(params ScrapeParams) (*ScrapeResponse, int, error) {
+	// Force JSON output for structured response
+	params.JSONOutput = true
+
+	rawResp, credits, err := c.ScrapeWithContext(context.Background(), params)
+	if err != nil {
+		return nil, credits, err
+	}
+
+	// Parse JSON response into ScrapeResponse
+	var scrapeResp ScrapeResponse
+	if err := json.Unmarshal(rawResp.Body, &scrapeResp); err != nil {
+		return nil, credits, fmt.Errorf("failed to parse JSON response: %w", err)
+	}
+
+	// Populate HTTP metadata
+	scrapeResp.StatusCode = rawResp.StatusCode
+	scrapeResp.ResponseHeaders = rawResp.Headers
+
+	return &scrapeResp, credits, nil
 }
 
-// Scrape calls the Ujeebu Scrape API and returns the requested web page data
-func (c *Client) Scrape(params ScrapeParams) (response *ScrapeResponse, credits int, err error) {
+// ScrapeWithContext calls the Ujeebu Scrape API with context support and returns raw response
+func (c *Client) ScrapeWithContext(ctx context.Context, params ScrapeParams) (*RawScrapeResponse, int, error) {
+	// Validate required parameters
+	if params.URL == "" {
+		return nil, 0, &ValidationError{
+			Field:   "URL",
+			Message: "URL is required",
+		}
+	}
 
 	// Encode fields that need Base64
 	if params.CustomJS != "" {
@@ -36,17 +81,18 @@ func (c *Client) Scrape(params ScrapeParams) (response *ScrapeResponse, credits 
 	if params.ScrollCallback != "" {
 		params.ScrollCallback = encodeBase64(params.ScrollCallback)
 	}
-	params.JSONOutput = true
 
-	req := c.client.R()
+	req := c.newRequest(ctx)
 
 	// Add custom headers (prefixed with "UJB-")
 	for key, value := range params.CustomHeaders {
 		req.SetHeader("UJB-"+key, value)
 	}
 
-	req.SetResult(&ScrapeResponse{}).SetError(&ScrapeError{})
+	req.SetError(&APIError{})
 	var resp *resty.Response
+	var err error
+
 	if params.ExtractRules != nil {
 		req.SetBody(params)
 		req.SetHeader("Content-Type", "application/json")
@@ -57,15 +103,22 @@ func (c *Client) Scrape(params ScrapeParams) (response *ScrapeResponse, credits 
 	}
 
 	if err != nil {
-		return nil, 0, fmt.Errorf("scrape API request failed: %w", err)
+		return nil, 0, &NetworkError{Err: err}
 	}
 
 	if resp.IsError() {
-		apiErr := resp.Error().(*ScrapeError)
-		return nil, 0, fmt.Errorf("scrape API error: %s (%d)", apiErr.Message, apiErr.ErrorCode)
+		apiErr := resp.Error().(*APIError)
+		apiErr.StatusCode = resp.StatusCode()
+		return nil, 0, apiErr
 	}
 
-	return resp.Result().(*ScrapeResponse), getUjeebuCreditsFromResponse(resp), nil
+	rawResp := &RawScrapeResponse{
+		Body:       resp.Body(),
+		StatusCode: resp.StatusCode(),
+		Headers:    resp.Header(),
+	}
+
+	return rawResp, getUjeebuCreditsFromResponse(resp), nil
 }
 
 // Screenshot retrieves the screenshot of the page with optional parameters.

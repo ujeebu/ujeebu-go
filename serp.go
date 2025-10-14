@@ -1,6 +1,7 @@
 package ujeebu
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 )
@@ -166,11 +167,6 @@ type GoogleMapsResult struct {
 	Maps []GoogleMap `json:"maps_results,omitempty"`
 }
 
-type SerpError struct {
-	Error string `json:"error"`
-	Code  int    `json:"code"`
-}
-
 // SerpParams represents the parameters used for the SERP API
 type SerpParams struct {
 	Search       string `json:"search,omitempty"`        // Search query
@@ -186,19 +182,32 @@ type SerpParams struct {
 
 // Serp retrieves search results from Google using the SERP API and returns the processed data
 func (c *Client) Serp(params SerpParams) ([]byte, int, error) {
-	req := c.client.R()
+	return c.SerpWithContext(context.Background(), params)
+}
 
+// SerpWithContext retrieves search results with context support
+func (c *Client) SerpWithContext(ctx context.Context, params SerpParams) ([]byte, int, error) {
+	// Validate required parameters - at least one of Search or URL must be provided
+	if params.Search == "" && params.URL == "" {
+		return nil, 0, &ValidationError{
+			Field:   "Search/URL",
+			Message: "Either Search or URL parameter is required",
+		}
+	}
+
+	req := c.newRequest(ctx)
 	req.SetQueryParams(serpParamsToMap(params))
-	req.SetError(&SerpError{})
+	req.SetError(&APIError{})
 
 	resp, err := req.Get("/serp")
 	if err != nil {
-		return nil, 0, fmt.Errorf("serp API request failed: %w", err)
+		return nil, 0, &NetworkError{Err: err}
 	}
 
 	if resp.IsError() {
-		apiErr := resp.Error().(*SerpError)
-		return nil, 0, fmt.Errorf("serp API error: %s", apiErr.Error)
+		apiErr := resp.Error().(*APIError)
+		apiErr.StatusCode = resp.StatusCode()
+		return nil, 0, apiErr
 	}
 
 	return resp.Body(), getUjeebuCreditsFromResponse(resp), nil

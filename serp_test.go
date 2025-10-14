@@ -64,15 +64,15 @@ func TestSerp_Success(t *testing.T) {
 
 func TestSerp_ErrorResponse(t *testing.T) {
 	mockResponse := `{
-		"status": "error",
-		"error": "Invalid search query"
+		"message": "Invalid search query",
+		"error_code": "INVALID_QUERY"
 	}`
 
 	mockServer, client := setupMockSerpServer(mockResponse, map[string]string{}, "application/json", http.StatusBadRequest)
 	defer mockServer.Close()
 
 	params := SerpParams{
-		Search: "",
+		Search: "test query", // Provide valid search to pass validation
 	}
 
 	serp, credits, err := client.Serp(params)
@@ -81,6 +81,29 @@ func TestSerp_ErrorResponse(t *testing.T) {
 	assert.Nil(t, serp)
 	assert.Equal(t, 0, credits)
 	assert.Contains(t, err.Error(), "Invalid search query")
+}
+
+func TestSerp_MissingSearchAndURL(t *testing.T) {
+	client := &Client{
+		apiKey: "test_api_key",
+		client: resty.New().SetBaseURL("https://api.ujeebu.com").SetTimeout(10 * time.Second),
+	}
+
+	params := SerpParams{
+		// Both Search and URL are empty
+	}
+
+	serp, credits, err := client.Serp(params)
+
+	assert.Error(t, err)
+	assert.Nil(t, serp)
+	assert.Equal(t, 0, credits)
+
+	// Check if it's a ValidationError
+	var validationErr *ValidationError
+	assert.ErrorAs(t, err, &validationErr)
+	assert.Equal(t, "Search/URL", validationErr.Field)
+	assert.Contains(t, validationErr.Message, "Either Search or URL parameter is required")
 }
 
 func TestSerp_Timeout(t *testing.T) {

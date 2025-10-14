@@ -1,6 +1,7 @@
 package ujeebu
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/go-resty/resty/v2"
@@ -24,34 +25,43 @@ type Article struct {
 	SiteName     string   `json:"site_name"`
 	Favicon      string   `json:"favicon"`
 	Encoding     string   `json:"encoding"`
+	IsArticle    float64  `json:"is_article,omitempty"`
 	Pages        []string `json:"pages"`
-	Time         float64  `json:"time"`
-	JS           bool     `json:"js"`
-	Pagination   bool     `json:"pagination"`
-}
-type ExtractResponse struct {
-	Article *Article `json:"article"`
 }
 
-// ExtractError represents an error response from the API
-type ExtractError struct {
-	URL       string   `json:"url"`
-	Message   string   `json:"message"`
-	ErrorCode int      `json:"error_code"`
-	Errors    []string `json:"errors"`
+// ExtractResponse represents the full response from the Extract API
+type ExtractResponse struct {
+	Article    *Article `json:"article"`
+	Time       float64  `json:"time,omitempty"`
+	JS         bool     `json:"js,omitempty"`
+	Pagination bool     `json:"pagination,omitempty"`
 }
 
 // Extract calls the Ujeebu Extract API and returns structured data
-func (c *Client) Extract(params ExtractParams) (article *Article, credits int, err error) {
-	req := c.client.R()
+func (c *Client) Extract(params ExtractParams) (*Article, int, error) {
+	return c.ExtractWithContext(context.Background(), params)
+}
+
+// ExtractWithContext calls the Ujeebu Extract API with context support
+func (c *Client) ExtractWithContext(ctx context.Context, params ExtractParams) (*Article, int, error) {
+	// Validate required parameters
+	if params.URL == "" && params.RawHTML == "" {
+		return nil, 0, &ValidationError{
+			Field:   "URL",
+			Message: "URL or RawHTML is required",
+		}
+	}
+
+	req := c.newRequest(ctx)
 
 	// Add custom headers (prefixed with "UJB-")
 	for key, value := range params.CustomHeaders {
 		req.SetHeader("UJB-"+key, value)
 	}
 
-	req = req.SetResult(&ExtractResponse{}).SetError(&ExtractError{})
+	req.SetResult(&ExtractResponse{}).SetError(&APIError{})
 	var resp *resty.Response
+	var err error
 
 	if params.RawHTML != "" {
 		req.SetBody(params)
@@ -63,16 +73,17 @@ func (c *Client) Extract(params ExtractParams) (article *Article, credits int, e
 	}
 
 	if err != nil {
-		return nil, 0, fmt.Errorf("extract API request failed: %w", err)
+		return nil, 0, &NetworkError{Err: err}
 	}
 
 	if resp.IsError() {
-		apiErr := resp.Error().(*ExtractError)
-		return nil, 0, fmt.Errorf("extract API error: %s (%d)", apiErr.Message, apiErr.ErrorCode)
+		apiErr := resp.Error().(*APIError)
+		apiErr.StatusCode = resp.StatusCode()
+		return nil, 0, apiErr
 	}
 
 	res := resp.Result()
-	if r, ok := res.(*ExtractResponse); ok {
+	if r, ok := res.(*ExtractResponse); ok && r.Article != nil {
 		return r.Article, getUjeebuCreditsFromResponse(resp), nil
 	}
 	return nil, 0, fmt.Errorf("extract API response is not a valid ExtractResponse")
