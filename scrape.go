@@ -71,6 +71,11 @@ func (c *Client) ScrapeWithContext(ctx context.Context, params ScrapeParams) (*R
 		}
 	}
 
+	// If FastMode is true, set Mode to d15de7
+	if params.FastMode {
+		params.Mode = "d15de7"
+	}
+
 	// Encode fields that need Base64
 	if params.CustomJS != "" {
 		params.CustomJS = encodeBase64(params.CustomJS)

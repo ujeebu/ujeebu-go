@@ -52,6 +52,11 @@ func (c *Client) ExtractWithContext(ctx context.Context, params ExtractParams) (
 		}
 	}
 
+	// If FastMode is true, set Mode to d15de7
+	if params.FastMode {
+		params.Mode = "d15de7"
+	}
+
 	req := c.newRequest(ctx)
 
 	// Add custom headers (prefixed with "UJB-")
