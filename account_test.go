@@ -21,7 +21,7 @@ func TestGetAccountInfo(t *testing.T) {
 	}{
 		{
 			name:         "successful response",
-			mockResponse: `{"balance":100,"days_till_next_billing":15,"next_billing_date":"2025-12-01","plan":"STARTER","quota":"5000","concurrent_requests":10,"total_requests":14,"used":95,"used_percent":1.9,"userid":"8155"}`,
+			mockResponse: `{"balance":100,"days_till_next_billing":15,"next_billing_date":"2025-12-01","plan":"STARTER","quota":"5000","concurrent_requests":10,"total_requests":"14","used":"95","used_percent":1.9,"userid":"8155"}`,
 			mockStatus:   http.StatusOK,
 			expectedErr:  "",
 			expectedResp: &AccountResponse{
@@ -32,14 +32,16 @@ func TestGetAccountInfo(t *testing.T) {
 				Quota:               "5000",
 				ConcurrentRequests:  10,
 				TotalRequests:       14,
+				TotalRequestsStr:    "14",
 				Used:                95,
+				UsedStr:             "95",
 				UsedPercent:         1.9,
 				UserID:              "8155",
 			},
 		},
 		{
 			name:         "successful response with null next_billing_date",
-			mockResponse: `{"balance":50,"days_till_next_billing":0,"next_billing_date":null,"plan":"FREE","quota":"1000","concurrent_requests":5,"total_requests":100,"used":250,"used_percent":25.0,"userid":"1234"}`,
+			mockResponse: `{"balance":50,"days_till_next_billing":0,"next_billing_date":null,"plan":"FREE","quota":"1000","concurrent_requests":5,"total_requests":"100","used":"250","used_percent":25.0,"userid":"1234"}`,
 			mockStatus:   http.StatusOK,
 			expectedErr:  "",
 			expectedResp: &AccountResponse{
@@ -50,7 +52,9 @@ func TestGetAccountInfo(t *testing.T) {
 				Quota:               "1000",
 				ConcurrentRequests:  5,
 				TotalRequests:       100,
+				TotalRequestsStr:    "100",
 				Used:                250,
+				UsedStr:             "250",
 				UsedPercent:         25.0,
 				UserID:              "1234",
 			},
