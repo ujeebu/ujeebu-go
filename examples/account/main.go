@@ -35,7 +35,7 @@ func getAccountInfo(client *ujeebu.Client) {
 	// Display account information
 	fmt.Printf("User ID: %s\n", account.UserID)
 	fmt.Printf("Plan: %s\n", account.Plan)
-	fmt.Printf("Quota: %s credits\n", account.Quota)
+	fmt.Printf("Quota: %d credits\n", account.Quota)
 	fmt.Println()
 
 	// Usage information
