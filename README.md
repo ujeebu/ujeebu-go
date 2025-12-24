@@ -45,10 +45,8 @@ go get github.com/ujeebu/ujeebu-go
 package main
 
 import (
-	"context"
 	"fmt"
 	"log"
-	"time"
 
 	"github.com/ujeebu/ujeebu-go"
 )
@@ -62,7 +60,7 @@ func main() {
 
 	// Extract article content
 	params := ujeebu.ExtractParams{
-		URL: "https://ujeebu.com/blog/web-scraping-in-2025",
+		URL: "https://ujeebu.com/blog/web-scraping-in-2025-state-of-the-art-and-trends/",
 	}
 
 	article, credits, err := client.Extract(params)
