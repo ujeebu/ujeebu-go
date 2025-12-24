@@ -18,7 +18,7 @@ func setupMockCardServer(response string, headers map[string]string, statusCode 
 		// Verify headers
 		if r.Header.Get("ApiKey") != "test_api_key" {
 			w.WriteHeader(http.StatusUnauthorized)
-			w.Write([]byte(`{"message": "Invalid API Key"}`))
+			_, _ = w.Write([]byte(`{"message": "Invalid API Key"}`))
 			return
 		}
 
@@ -125,7 +125,7 @@ func TestCard_WithCustomHeaders(t *testing.T) {
 		w.Header().Set("Content-Type", "application/json")
 		w.Header().Set(CreditsHeader, "3")
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"url": "https://example.com", "title": "Test"}`))
+		_, _ = w.Write([]byte(`{"url": "https://example.com", "title": "Test"}`))
 	}))
 	defer mockServer.Close()
 
@@ -324,7 +324,7 @@ func TestCard_Timeout(t *testing.T) {
 		// Simulate a slow response
 		time.Sleep(2 * time.Second)
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"url": "https://example.com", "title": "Delayed Response"}`))
+		_, _ = w.Write([]byte(`{"url": "https://example.com", "title": "Delayed Response"}`))
 	}))
 	defer mockServer.Close()
 
@@ -353,7 +353,7 @@ func TestCard_InvalidJSON(t *testing.T) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
 		// Return invalid JSON
-		w.Write([]byte(`{invalid json`))
+		_, _ = w.Write([]byte(`{invalid json`))
 	}))
 	defer mockServer.Close()
 
@@ -421,7 +421,7 @@ func TestCardWithContext_Cancellation(t *testing.T) {
 		// Simulate a slow response
 		time.Sleep(2 * time.Second)
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"url": "https://example.com", "title": "Slow Response"}`))
+		_, _ = w.Write([]byte(`{"url": "https://example.com", "title": "Slow Response"}`))
 	}))
 	defer mockServer.Close()
 
@@ -463,7 +463,7 @@ func TestCard_NilContext(t *testing.T) {
 	params := CardParams{URL: "https://example.com"}
 
 	// Pass nil context - should default to Background
-	card, credits, err := client.CardWithContext(nil, params)
+	card, credits, err := client.CardWithContext(context.TODO(), params)
 	require.NoError(t, err)
 	assert.NotNil(t, card)
 	assert.Equal(t, "Nil Context Test", card.Title)

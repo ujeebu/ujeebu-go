@@ -110,7 +110,7 @@ func TestSerp_Timeout(t *testing.T) {
 	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		time.Sleep(2 * time.Second)
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"success": true, "results": "{\"items\":[\"Delayed Result\"]}"}`))
+		_, _ = w.Write([]byte(`{"success": true, "results": "{\"items\":[\"Delayed Result\"]}"}`))
 	}))
 	defer mockServer.Close()
 

@@ -2,7 +2,6 @@ package ujeebu
 
 import (
 	"encoding/base64"
-	"encoding/json"
 	"strconv"
 	"strings"
 
@@ -31,18 +30,6 @@ func encodeBase64(value string) string {
 		return value
 	}
 	return base64.StdEncoding.EncodeToString([]byte(value))
-}
-
-// encodeExtractRules encodes JSON rules to Base64 string
-func encodeExtractRules(rules map[string]interface{}) string {
-	if rules == nil {
-		return ""
-	}
-	jsonData, err := json.Marshal(rules)
-	if err != nil {
-		return ""
-	}
-	return base64.StdEncoding.EncodeToString(jsonData)
 }
 
 // shouldEncodeWaitFor checks if WaitFor should be encoded

@@ -86,7 +86,7 @@ func TestScrape_Timeout(t *testing.T) {
 	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		time.Sleep(2 * time.Second)
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"success": true, "html": "<p>Delayed Response</p>"}`))
+		_, _ = w.Write([]byte(`{"success": true, "html": "<p>Delayed Response</p>"}`))
 	}))
 	defer mockServer.Close()
 
@@ -140,7 +140,7 @@ func TestScrapeWithContext_RawImage(t *testing.T) {
 		w.Header().Set("Content-Type", "image/jpeg")
 		w.Header().Set("ujb-credits", "5")
 		w.WriteHeader(http.StatusOK)
-		w.Write(mockImageData)
+		_, _ = w.Write(mockImageData)
 	}))
 	defer mockServer.Close()
 
@@ -224,7 +224,7 @@ func TestScrapeWithContext_WithContext(t *testing.T) {
 		time.Sleep(500 * time.Millisecond)
 		w.Header().Set("ujb-credits", "1")
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("<html>Test</html>"))
+		_, _ = w.Write([]byte("<html>Test</html>"))
 	}))
 	defer mockServer.Close()
 
@@ -252,7 +252,7 @@ func TestScrape_ForcesJSONOutput(t *testing.T) {
 		w.Header().Set("ujb-credits", "4")
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"success": true, "html": "<div>Test</div>"}`))
+		_, _ = w.Write([]byte(`{"success": true, "html": "<div>Test</div>"}`))
 	}))
 	defer mockServer.Close()
 

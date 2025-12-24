@@ -88,7 +88,7 @@ func TestExtract_Timeout(t *testing.T) {
 	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		time.Sleep(2 * time.Second)
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"url": "https://example.com", "title": "Delayed Response"}`))
+		_, _ = w.Write([]byte(`{"url": "https://example.com", "title": "Delayed Response"}`))
 	}))
 	defer mockServer.Close()
 
