@@ -85,7 +85,6 @@ type ScrapeParams struct {
 	HTTPMethod          string            `json:"http_method,omitempty"`
 	PostData            string            `json:"post_data,omitempty"`
 	Mode                string            `json:"mode,omitempty"`
-	FastMode            bool              `json:"-"` // If true, sets mode=d15de7
 	CustomHeaders       map[string]string `json:"-"`
 }
 

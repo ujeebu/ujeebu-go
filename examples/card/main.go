@@ -62,11 +62,9 @@ func basicCard(client *ujeebu.Client) {
 
 func cardWithJS(client *ujeebu.Client) {
 	params := ujeebu.CardParams{
-		URL:          "https://example.com/spa-page",
-		JS:           true,
-		JSTimeout:    5000,
-		ProxyType:    "premium",
-		ProxyCountry: "us",
+		URL:       "https://ujeebu.com/blog/web-scraping-in-2025-state-of-the-art-and-trends/",
+		JS:        true,
+		JSTimeout: 5000,
 	}
 
 	card, credits, err := client.Card(params)
@@ -82,7 +80,8 @@ func cardWithJS(client *ujeebu.Client) {
 
 func cardWithErrorHandling(client *ujeebu.Client) {
 	params := ujeebu.CardParams{
-		URL: "https://invalid-url-that-does-not-exist-12345.com",
+		URL:     "https://example.com/does-not-exist",
+		Timeout: 20,
 	}
 
 	card, credits, err := client.Card(params)

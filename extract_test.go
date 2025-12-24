@@ -1,6 +1,8 @@
 package ujeebu
 
 import (
+	"encoding/json"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -101,4 +103,62 @@ func TestExtract_Timeout(t *testing.T) {
 	assert.Error(t, err)
 	assert.Nil(t, article)
 	assert.Equal(t, 0, credits)
+}
+
+func TestExtract_Validation_URLRequired_EvenWithRawHTML(t *testing.T) {
+	client := &Client{}
+
+	_, _, err := client.Extract(ExtractParams{RawHTML: "<html></html>"})
+	require.Error(t, err)
+
+	var validationErr *ValidationError
+	require.ErrorAs(t, err, &validationErr)
+	assert.Equal(t, "URL", validationErr.Field)
+}
+
+func TestExtract_RawHTML_UsesPOSTAndBody(t *testing.T) {
+	const rawHTML = "<html><body>ok</body></html>"
+
+	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		assert.Equal(t, "/extract", r.URL.Path)
+		assert.Equal(t, http.MethodPost, r.Method)
+		assert.Equal(t, "application/json", r.Header.Get("Content-Type"))
+
+		b, err := io.ReadAll(r.Body)
+		require.NoError(t, err)
+
+		var payload map[string]any
+		require.NoError(t, json.Unmarshal(b, &payload))
+		assert.Equal(t, "https://example.com/article", payload["url"])
+		assert.Equal(t, rawHTML, payload["raw_html"])
+
+		w.Header().Set("Content-Type", "application/json")
+		w.Header().Set(CreditsHeader, "7")
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte(`{"article":{"title":"ok"}}`))
+	}))
+	defer mockServer.Close()
+
+	client, err := NewClient("test_api_key", WithBaseURL(mockServer.URL), WithRetry(0, 0, 0))
+	require.NoError(t, err)
+
+	article, credits, err := client.Extract(ExtractParams{
+		URL:     "https://example.com/article",
+		RawHTML: rawHTML,
+	})
+	require.NoError(t, err)
+	require.NotNil(t, article)
+	assert.Equal(t, "ok", article.Title)
+	assert.Equal(t, 7, credits)
+}
+
+func TestArticle_Unmarshal_ToleratesBooleans(t *testing.T) {
+	var r ExtractResponse
+	data := []byte(`{"article":{"title":"t","summary":false,"author":false,"text":null}}`)
+	require.NoError(t, json.Unmarshal(data, &r))
+	require.NotNil(t, r.Article)
+	assert.Equal(t, "t", r.Article.Title)
+	assert.Equal(t, "", r.Article.Summary)
+	assert.Equal(t, "", r.Article.Author)
+	assert.Equal(t, "", r.Article.Text)
 }

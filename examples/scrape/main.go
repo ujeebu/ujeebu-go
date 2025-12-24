@@ -57,11 +57,9 @@ func basicScrape(client *ujeebu.Client) {
 
 func scrapeWithJS(client *ujeebu.Client) {
 	params := ujeebu.ScrapeParams{
-		URL:            "https://example.com/spa",
+		URL:            "https://example.com/",
 		JS:             true,
 		JSTimeout:      10000,
-		WaitFor:        ".content-loaded",
-		WaitForTimeout: 5000,
 		Device:         "desktop",
 		BlockAds:       true,
 		BlockResources: true,
@@ -85,16 +83,13 @@ func scrapeWithJS(client *ujeebu.Client) {
 
 func scrapeWithScroll(client *ujeebu.Client) {
 	params := ujeebu.ScrapeParams{
-		URL:               "https://ujeebu.com/docs/scrape-me/load-more",
+		URL:               "https://example.com/",
 		JS:                true,
-		JSTimeout:         15000,
-		WaitFor:           ".products-list",
-		WaitForTimeout:    5000,
+		Timeout:           60,
+		JSTimeout:         30,
 		ScrollDown:        true,
-		ScrollWait:        2000,
+		ScrollWait:        1000,
 		ProgressiveScroll: true,
-		ScrollToSelector:  ".load-more-section",
-		ScrollCallback:    "() => (document.querySelector('.no-more-products') === null)",
 		Device:            "desktop",
 		WindowWidth:       1920,
 		WindowHeight:      1080,
@@ -113,19 +108,22 @@ func scrapeWithScroll(client *ujeebu.Client) {
 
 func scrapeWithRules(client *ujeebu.Client) {
 	params := ujeebu.ScrapeParams{
-		URL: "https://example.com/products",
+		URL: "https://books.toscrape.com/",
 		ExtractRules: map[string]any{
 			"products": map[string]any{
-				"_selector": ".product",
-				"title":     ".product-title",
-				"price":     ".product-price",
+				"_selector": ".product_pod",
+				"title": map[string]string{
+					"_selector":  "h3 a",
+					"_attribute": "title",
+				},
+				"price": ".price_color",
 				"image": map[string]string{
-					"_selector":  ".product-image",
+					"_selector":  ".image_container img",
 					"_attribute": "src",
 				},
 				"rating": map[string]string{
-					"_selector":  ".product-rating",
-					"_attribute": "data-rating",
+					"_selector":  ".star-rating",
+					"_attribute": "class",
 				},
 			},
 		},

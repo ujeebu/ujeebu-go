@@ -21,7 +21,6 @@ func main() {
 	client, err := ujeebu.NewClient(
 		apiKey,
 		ujeebu.WithTimeout(120*time.Second),
-		ujeebu.WithDebug(true),
 	)
 	if err != nil {
 		log.Fatalf("Failed to create client: %v", err)
@@ -66,9 +65,10 @@ func basicExtraction(client *ujeebu.Client) {
 
 func extractionWithJS(client *ujeebu.Client) {
 	params := ujeebu.ExtractParams{
-		URL:       "https://example.com/spa-article",
+		URL:       "https://ujeebu.com/blog/web-scraping-in-2025-state-of-the-art-and-trends/",
 		JS:        true,
-		JSTimeout: 10000,
+		Timeout:   120,
+		JSTimeout: 60,
 		Text:      true,
 		Images:    true,
 		Author:    true,
@@ -127,6 +127,7 @@ func extractFromRawHTML(client *ujeebu.Client) {
 	`
 
 	params := ujeebu.ExtractParams{
+		URL:     "https://example.com/",
 		RawHTML: rawHTML,
 	}
 

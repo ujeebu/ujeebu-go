@@ -165,6 +165,7 @@ article, credits, err := client.Extract(params)
 
 ```go
 params := ujeebu.ExtractParams{
+	URL:    "https://example.com/article",
 	RawHTML: "<html><body><h1>Title</h1><p>Content</p></body></html>",
 }
 
