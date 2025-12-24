@@ -7,7 +7,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/ujeebu/ujeebu-go-sdk"
+	"github.com/ujeebu/ujeebu-go"
 )
 
 func main() {

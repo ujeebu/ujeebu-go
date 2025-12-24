@@ -1,4 +1,4 @@
-module github.com/ujeebu/ujeebu-go-sdk
+module github.com/ujeebu/ujeebu-go
 
 go 1.23.6
 

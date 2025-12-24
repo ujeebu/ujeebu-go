@@ -1,7 +1,7 @@
 # Ujeebu API Go SDK
 
-[![Go Reference](https://pkg.go.dev/badge/github.com/ujeebu/ujeebu-go-sdk.svg)](https://pkg.go.dev/github.com/ujeebu/ujeebu-go-sdk)
-[![Go Report Card](https://goreportcard.com/badge/github.com/ujeebu/ujeebu-go-sdk)](https://goreportcard.com/report/github.com/ujeebu/ujeebu-go-sdk)
+[![Go Reference](https://pkg.go.dev/badge/github.com/ujeebu/ujeebu-go.svg)](https://pkg.go.dev/github.com/ujeebu/ujeebu-go)
+[![Go Report Card](https://goreportcard.com/badge/github.com/ujeebu/ujeebu-go)](https://goreportcard.com/report/github.com/ujeebu/ujeebu-go)
 
 [Ujeebu](https://ujeebu.com) is a comprehensive API platform for web scraping, content extraction, and search engine results. This SDK provides a robust, production-ready interface for Go applications with support for:
 
@@ -36,7 +36,7 @@
 ## Installation
 
 ```bash
-go get github.com/ujeebu/ujeebu-go-sdk
+go get github.com/ujeebu/ujeebu-go
 ```
 
 ## Quick Start
@@ -50,7 +50,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/ujeebu/ujeebu-go-sdk"
+	"github.com/ujeebu/ujeebu-go"
 )
 
 func main() {
@@ -83,7 +83,7 @@ The SDK uses an options pattern for flexible client configuration:
 ```go
 import (
 	"time"
-	"github.com/ujeebu/ujeebu-go-sdk"
+	"github.com/ujeebu/ujeebu-go"
 )
 
 client, err := ujeebu.NewClient(
@@ -632,7 +632,7 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 - 📧 Email: support@ujeebu.com
 - 📚 Documentation: https://ujeebu.com/docs
-- 🐛 Issues: https://github.com/ujeebu/ujeebu-go-sdk/issues
+- 🐛 Issues: https://github.com/ujeebu/ujeebu-go/issues
 
 ## License
 
