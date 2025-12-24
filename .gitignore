@@ -22,8 +22,24 @@
 go.work
 go.work.sum
 
-# env file
+# Environment files and secrets
 .env
+.env.*
+!.env.example
+*.local
+
+# Sensitive files
+*.key
+*.pem
+*.p12
+*.pfx
+*.crt
+*.cer
+secrets.*
+*_secret*
+*_secrets*
+credentials.*
+*_credentials*
 
 ### GoLand template
 # Covers JetBrains IDEs: IntelliJ, RubyMine, PhpStorm, AppCode, PyCharm, CLion, Android Studio, WebStorm and Rider
